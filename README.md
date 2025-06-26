@@ -49,3 +49,7 @@ blogging-platform-api/
 
 - npm install bcryptjs jsonwebtoken
 - npm install --save-dev @types/bcryptjs @types/jsonwebtoken
+
+### REFRESH SECRETE
+
+- node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"

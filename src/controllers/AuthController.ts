@@ -31,6 +31,43 @@ export class AuthController {
       return;
     }
 
-    res.json({ token });
+    // Send refresh token as HTTP-only cookie
+    res.cookie("refreshToken", token.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.json({ accessToken: token.accessToken });
   };
+
+  refreshToken = (req: Request, res: Response): void => {
+    const token = req.cookies.refreshToken;
+    if (!token) {
+      res.status(401).json({ error: "No refresh token" });
+      return;
+    }
+
+    const payload = service.verifyRefreshToken(token);
+    if (!payload) {
+      res.status(403).json({ error: "Invalid refresh token" });
+      return;
+    }
+
+    const newAccessToken = service.generateAccessToken(
+      payload.id,
+      payload.role
+    );
+    res.json({ accessToken: newAccessToken });
+  };
+
+  async logout(req: Request, res: Response) {
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    res.json({ message: "Logged out successfully" });
+  }
 }

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login & Protected API</title>
+</head>
+<body>
+  <h2>Login</h2>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <br><br>
+
+  <h2>Fetch Protected Posts</h2>
+  <button onclick="fetchPosts()">Get Posts</button>
+  <br><br>
+
+  <button onclick="logout()">Logout</button>
+
+  <script>
+    let accessToken = '';
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // important for cookies
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        accessToken = data.accessToken;
+        alert('Login success!');
+      } else {
+        alert(data.error || 'Login failed');
+      }
+    }
+
+    async function fetchPosts() {
+      let res = await fetch('http://localhost:5000/api/posts', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        console.log('Access token expired. Trying refresh...');
+        await refreshAccessToken();
+        // Try again after refresh
+        res = await fetch('http://localhost:5000/api/posts', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+      }
+
+      const data = await res.json();
+      console.log(data);
+    }
+
+    async function refreshAccessToken() {
+      const res = await fetch('http://localhost:5000/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include' // send cookie
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        accessToken = data.accessToken;
+        console.log('Token refreshed');
+      } else {
+        alert('Session expired. Please log in again.');
+      }
+    }
+
+    async function logout() {
+      await fetch('http://localhost:5000/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      accessToken = '';
+      alert('Logged out!');
+    }
+  </script>
+</body>
+</html>
