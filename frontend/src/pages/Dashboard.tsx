@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPosts, refresh, logout } from "../api/auth";
+import AdminPanel from "./AdminPanel";
 
 export default function Dashboard({
   token,
@@ -38,6 +39,8 @@ export default function Dashboard({
           <li key={p._id}>{p.title}</li>
         ))}
       </ul>
+
+      <AdminPanel token={token} />
     </div>
   );
 }

@@ -35,24 +35,25 @@ export class AuthController {
     // Send refresh token as HTTP-only cookie
     res.cookie("refreshToken", token.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production", // enable only in production
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
+    // Return access token in response body
     res.json({ accessToken: token.accessToken });
   };
 
   refreshToken = async (req: Request, res: Response): Promise<void> => {
     try {
-      const token = req.cookies.refreshToken;
+      const token = req.cookies?.refreshToken;
       if (!token) {
         res.status(401).json({ error: "No refresh token" });
         return;
       }
 
       const payload = service.verifyRefreshToken(token);
-      if (!payload) {
+      if (!payload || !payload.id || !payload.role) {
         res.status(403).json({ error: "Invalid refresh token" });
         return;
       }
@@ -68,38 +69,24 @@ export class AuthController {
         payload.role
       );
       res.json({ accessToken: newAccessToken });
-    } catch (error) {
+    } catch {
       res.status(403).json({ error: "Invalid refresh token" });
     }
   };
 
   logout = async (req: Request, res: Response): Promise<void> => {
-    const token = req.cookies.refreshToken;
-    await RefreshTokenModel.deleteOne({ token });
+    const token = req.cookies?.refreshToken;
+
+    if (token) {
+      await RefreshTokenModel.deleteOne({ token });
+    }
 
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
+
     res.json({ message: "Logged out successfully" });
   };
-
-  // logout = async (req: Request, res: Response): Promise<void> => {
-  //   const token = req.cookies?.refreshToken;
-  //   if (!token) {
-  //     res.status(400).json({ error: "No refresh token to clear" });
-  //     return;
-  //   }
-
-  //   await RefreshTokenModel.deleteOne({ token });
-
-  //   res.clearCookie("refreshToken", {
-  //     httpOnly: true,
-  //     secure: process.env.NODE_ENV === "production",
-  //     sameSite: "strict",
-  //   });
-
-  //   res.json({ message: "Logged out successfully" });
-  // };
 }
