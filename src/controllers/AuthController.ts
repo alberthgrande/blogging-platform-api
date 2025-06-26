@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../services/AuthService";
+import RefreshTokenModel from "../models/RefreshToken";
 
 const service = new AuthService();
 
@@ -42,32 +43,45 @@ export class AuthController {
     res.json({ accessToken: token.accessToken });
   };
 
-  refreshToken = (req: Request, res: Response): void => {
-    const token = req.cookies.refreshToken;
-    if (!token) {
-      res.status(401).json({ error: "No refresh token" });
-      return;
-    }
+  refreshToken = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const token = req.cookies.refreshToken;
+      if (!token) {
+        res.status(401).json({ error: "No refresh token" });
+        return;
+      }
 
-    const payload = service.verifyRefreshToken(token);
-    if (!payload) {
+      const payload = service.verifyRefreshToken(token);
+      if (!payload) {
+        res.status(403).json({ error: "Invalid refresh token" });
+        return;
+      }
+
+      const stored = await RefreshTokenModel.findOne({ token });
+      if (!stored) {
+        res.status(403).json({ error: "Token revoked" });
+        return;
+      }
+
+      const newAccessToken = service.generateAccessToken(
+        payload.id,
+        payload.role
+      );
+      res.json({ accessToken: newAccessToken });
+    } catch (error) {
       res.status(403).json({ error: "Invalid refresh token" });
-      return;
     }
-
-    const newAccessToken = service.generateAccessToken(
-      payload.id,
-      payload.role
-    );
-    res.json({ accessToken: newAccessToken });
   };
 
-  async logout(req: Request, res: Response) {
+  logout = async (req: Request, res: Response): Promise<void> => {
+    const token = req.cookies.refreshToken;
+    await RefreshTokenModel.deleteOne({ token });
+
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
     res.json({ message: "Logged out successfully" });
-  }
+  };
 }

@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User, { IUser } from "../models/User";
+import RefreshTokenModel from "../models/RefreshToken";
 
 export class AuthService {
   async register(email: string, password: string): Promise<IUser> {
@@ -35,6 +36,8 @@ export class AuthService {
 
     const accessToken = this.generateAccessToken(userId, user.role);
     const refreshToken = this.generateRefreshToken(userId);
+
+    await RefreshTokenModel.create({ userId: user._id, token: refreshToken });
 
     return { accessToken, refreshToken };
   }
