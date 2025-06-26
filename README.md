@@ -1,11 +1,11 @@
-# </> Installation
+# 🔧 Step-by-Step Setup
 
 - npm init -y
 - npm install express mongoose cors dotenv
 - npm install --save-dev typescript ts-node-dev @types/node @types/express @types/cors
 - npx tsc --init
 
-### </> Run application command(cmd)
+### 🚀 Run the API
 
 - npx ts-node-dev src/server.ts
 
