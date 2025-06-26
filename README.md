@@ -1,12 +1,17 @@
 # </> Installation
 
-npm init -y
-npm install express mongoose cors dotenv
-npm install --save-dev typescript ts-node-dev @types/node @types/express @types/cors
-npx tsc --init
+- npm init -y
+- npm install express mongoose cors dotenv
+- npm install --save-dev typescript ts-node-dev @types/node @types/express @types/cors
+- npx tsc --init
 
-## 📁 Folder Structure
+### </> Run application command(cmd)
 
+- npx ts-node-dev src/server.ts
+
+### 📁 Folder Structure
+
+```
 blogging-platform-api/
 │
 ├── src/ # Source code folder
@@ -27,3 +32,4 @@ blogging-platform-api/
 ├── tsconfig.json # TypeScript configuration
 ├── package.json # Project metadata and dependencies
 └── nodemon.json # Nodemon config for dev environment
+```
