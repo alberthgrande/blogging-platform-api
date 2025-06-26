@@ -84,4 +84,22 @@ export class AuthController {
     });
     res.json({ message: "Logged out successfully" });
   };
+
+  // logout = async (req: Request, res: Response): Promise<void> => {
+  //   const token = req.cookies?.refreshToken;
+  //   if (!token) {
+  //     res.status(400).json({ error: "No refresh token to clear" });
+  //     return;
+  //   }
+
+  //   await RefreshTokenModel.deleteOne({ token });
+
+  //   res.clearCookie("refreshToken", {
+  //     httpOnly: true,
+  //     secure: process.env.NODE_ENV === "production",
+  //     sameSite: "strict",
+  //   });
+
+  //   res.json({ message: "Logged out successfully" });
+  // };
 }
